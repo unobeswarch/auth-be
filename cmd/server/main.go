@@ -51,8 +51,10 @@ func main() {
 
 	http.Handle("/register", authMiddleware(http.HandlerFunc(handlers.HandlerRegistrarUsuario)))
 	http.Handle("/auth", authMiddleware(http.HandlerFunc(handlers.HandlerIniciarSesion)))
-	http.Handle("/upload", authMiddleware(http.HandlerFunc(handlers.HandlerFotoPerfil)))
+	http.Handle("/upload", authMiddleware(http.HandlerFunc(handlers.HandlerGuardarFotoPerfil)))
 	http.Handle("/validation", authMiddleware(http.HandlerFunc(handlers.HandlerValidarTokenYRol)))
+	http.Handle("/userExists", authMiddleware(http.HandlerFunc(handlers.HandlerUserExists)))
+	http.Handle("/userImage", authMiddleware(http.HandlerFunc(handlers.HandlerObtenerImagenUsuario)))
 
 	log.Printf("business logic service URL: %s", prediagnosticURL)
 	log.Fatal(http.ListenAndServe(":"+port, nil))
