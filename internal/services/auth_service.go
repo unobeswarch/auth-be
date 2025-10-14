@@ -276,3 +276,22 @@ func (s *AuthService) GuardarFoto(ctx context.Context, authHeader string, file m
 	return imagenURL, nil
 
 }
+
+func (s *AuthService) RetornarFoto(ctx context.Context, userID string) (string, error) {
+	db, err := sql.Open("postgres", "host=localhost port=5432 user=postgres password=123 dbname=blogic_db sslmode=disable")
+	if err != nil {
+		return "", err
+	}
+	defer db.Close()
+
+	var imagePath string
+	err = db.QueryRow("SELECT imagen_url FROM usuarios WHERE id = $1", userID).Scan(&imagePath)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return "", fmt.Errorf("usuario no encontrado")
+		}
+		return "", err
+	}
+
+	return imagePath, nil
+}

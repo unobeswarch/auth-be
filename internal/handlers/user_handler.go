@@ -3,7 +3,9 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/unobeswarch/businesslogic/internal/models"
@@ -12,6 +14,10 @@ import (
 
 type ValidateTokenRequest struct {
 	RequiredRole string `json:"required_role,omitempty"`
+}
+
+type UserExistsRequest struct {
+	UserID string `json:"user_id"`
 }
 
 func HandlerRegistrarUsuario(w http.ResponseWriter, r *http.Request) {
@@ -165,7 +171,7 @@ func HandlerValidacion(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(resp)
 }
 
-func HandlerFotoPerfil(w http.ResponseWriter, r *http.Request) {
+func HandlerGuardarFotoPerfil(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
 		return
@@ -249,4 +255,108 @@ func HandlerValidarTokenYRol(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(claims)
+}
+
+func HandlerUserExists(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"error": "Método no permitido",
+		})
+		return
+	}
+
+	var req UserExistsRequest
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"error": "Body inválido o mal formado",
+		})
+		return
+	}
+
+	if req.UserID == "" {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"error": "El campo 'user_id' es obligatorio",
+		})
+		return
+	}
+
+	authService := services.NewAuthService()
+
+	exists, err := authService.UserExists(r.Context(), req.UserID)
+
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"exists": exists,
+	})
+}
+
+func HandlerObtenerImagenUsuario(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Método no permitido"})
+		return
+	}
+
+	userID := r.URL.Query().Get("id")
+	if userID == "" {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Falta parámetro 'id'"})
+		return
+	}
+
+	authService := services.NewAuthService()
+	imagePath, err := authService.RetornarFoto(r.Context(), userID)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		if strings.Contains(err.Error(), "no encontrado") {
+			w.WriteHeader(http.StatusNotFound)
+			json.NewEncoder(w).Encode(map[string]string{"error": "Usuario no encontrado"})
+		} else {
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(map[string]string{"error": "Error obteniendo imagen: " + err.Error()})
+		}
+		return
+	}
+
+	file, err := os.Open("." + imagePath)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(map[string]string{"error": "No se pudo abrir la imagen"})
+		return
+	}
+	defer file.Close()
+
+	buffer := make([]byte, 512)
+	_, err = file.Read(buffer)
+	if err != nil {
+		http.Error(w, "Error leyendo imagen", http.StatusInternalServerError)
+		return
+	}
+	contentType := http.DetectContentType(buffer)
+
+	file.Seek(0, 0)
+
+	w.Header().Set("Content-Type", contentType)
+	w.WriteHeader(http.StatusOK)
+	io.Copy(w, file)
+
 }
