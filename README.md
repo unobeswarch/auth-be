@@ -1,33 +1,136 @@
-# BusinessLogic Service
+## Endpoints
 
-Microservicio **BusinessLogic** desarrollado en Go.  
-Se encarga de orquestar la comunicación entre frontend, prediagnostic y otros componentes del sistema, 
-exponiendo endpoints **REST** y **GraphQL**.
+### 1. Registrar Usuario
+Registra un nuevo usuario en el sistema.
 
+**Endpoint:** `POST /register`
+
+**Request Body:**
+```json
+{
+  "nombre_completo": "string",
+  "edad": "number",
+  "rol": "string",
+  "identificacion": "string",
+  "correo": "string",
+  "contrasena": "string (mínimo 8 caracteres)",
+  "acepta_tratamiento_datos": "boolean"
+}
+```
+
+**Response exitoso (201):**
+```json
+{
+  "id": "number",
+  "mensaje": "Usuario registrado exitosamente",
+  "fecha_registro": "timestamp"
+}
+```
 ---
 
-## 📂 Estructura del Proyecto
+### 2. Iniciar Sesión
+Autentica un usuario y genera un token JWT.
 
-```bash
-/businesslogic
-│── cmd/
-│   └── server/                  # main.go vive aquí (entrypoint del microservicio)
-│
-│── internal/                    # Código interno, no expuesto a otros módulos
-│   ├── config/                  # Configuración (archivos .env, variables globales, setup de GraphQL/REST)
-│   ├── server/                  # Inicialización de servidores REST y GraphQL
-│   ├── handlers/                # Lógica de endpoints (REST y GraphQL resolvers)
-│   ├── services/                # Lógica de negocio (orquestación entre componentes externos)
-│   ├── clients/                 # Conexiones HTTP/GraphQL a otros microservicios
-│   ├── models/                  # Definición de estructuras de datos
-│   └── utils/                   # Utilidades comunes (JWT parsing, logging, errores)
-│
-│── graph/                       # Archivos autogenerados por gqlgen para GraphQL
-│   ├── schema.graphqls          # Definición del esquema GraphQL
-│   ├── generated.go
-│   └── resolvers.go
-│
-│── pkg/                         # Librerías reutilizables (ej: middlewares)
-│
-│── go.mod                       # Definición del módulo y dependencias
-│── go.sum                       # Checksum de dependencias
+**Endpoint:** `POST /auth`
+
+**Request Body:**
+```json
+{
+  "correo": "string",
+  "contrasena": "string"
+}
+```
+
+**Response exitoso (200):**
+```json
+{
+  "nombre": "string",
+  "token": "string (JWT)",
+  "rol": "string",
+  "user_id": "number",
+  "correo": "string"
+}
+```
+---
+
+### 3. Guardar Foto de Perfil
+Permite subir una foto de perfil para el usuario autenticado.
+
+**Endpoint:** `POST /upload`
+
+**Headers:**
+```
+Authorization: Bearer <token>
+Content-Type: multipart/form-data
+```
+
+**Form Data:**
+- `foto`: archivo de imagen (máximo 10 MB)
+
+**Response exitoso (200):**
+```json
+{
+  "mensaje": "Foto guardada correctamente",
+  "imagen_url": "/uploads/unique-filename.ext"
+}
+```
+---
+
+### 4. Validar Token y Rol
+Valida un token JWT y verifica que el usuario tenga el rol requerido.
+
+**Endpoint:** `POST /validation`
+
+**Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Request Body:**
+```json
+{
+  "required_role": "string"
+}
+```
+
+**Response exitoso (200):**
+```json
+{
+  "UserID": "string",
+  "Email": "string",
+  "Role": "string",
+  "Name": "string"
+}
+```
+---
+
+### 5. Verificar Existencia de Usuario
+Verifica si un usuario existe en la base de datos mediante su ID.
+
+**Endpoint:** `POST /userExists`
+
+**Request Body:**
+```json
+{
+  "user_id": "string"
+}
+```
+
+**Response exitoso (200):**
+```json
+{
+  "exists": "boolean"
+}
+```
+---
+
+### 6. Obtener Imagen de Usuario
+Retorna la imagen de perfil de un usuario específico.
+
+**Endpoint:** `GET /userImage?id=<user_id>`
+
+**Query Parameters:**
+- `id`: ID del usuario (requerido)
+
+**Response exitoso (200):**
+- Retorna el archivo de imagen con el Content-Type apropiado (image/jpeg, image/png, etc.)
