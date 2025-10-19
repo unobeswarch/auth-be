@@ -127,10 +127,29 @@ Verifica si un usuario existe en la base de datos mediante su ID.
 ### 6. Obtener Imagen de Usuario
 Retorna la imagen de perfil de un usuario específico.
 
-**Endpoint:** `GET /userImage?id=<user_id>`
+**Endpoint:** `GET /userInfo`
 
 **Query Parameters:**
 - `id`: ID del usuario (requerido)
 
 **Response exitoso (200):**
 - Retorna el archivo de imagen con el Content-Type apropiado (image/jpeg, image/png, etc.)
+
+### 7. Obtener datos del usuario
+Retorna nombre, email y rol del usuario
+
+**Endpoint:** `GET /userImage?id=<user_id>`
+
+**Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Response exitoso (200):**
+```json
+{
+  "nombre": "string",
+	"email":  "string",
+	"rol":    "string",
+}
+```
