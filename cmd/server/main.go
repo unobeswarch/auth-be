@@ -56,7 +56,7 @@ func main() {
 	http.Handle("/userExists", authMiddleware(http.HandlerFunc(handlers.HandlerUserExists)))
 	http.Handle("/userImage", authMiddleware(http.HandlerFunc(handlers.HandlerObtenerImagenUsuario)))
 	http.Handle("/userInfo", authMiddleware(http.HandlerFunc(handlers.HandlerObtenerUsuario)))
-
+	http.Handle("/getUserInfo", authMiddleware(http.HandlerFunc(handlers.HandlerGetUserInfo)))
 	log.Printf("business logic service URL: %s", prediagnosticURL)
 	log.Fatal(http.ListenAndServe(":"+port, nil))
 }

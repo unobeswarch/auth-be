@@ -153,3 +153,44 @@ Authorization: Bearer <token>
 	"rol":    "string",
 }
 ```
+
+---
+
+### 7. Obtener Información de Usuario
+Obtiene información básica de un usuario específico (nombre completo, identificación y correo).
+
+**Endpoint:** `GET /getUserInfo?id=<user_id>`
+
+**Query Parameters:**
+- `id`: ID del usuario (requerido)
+
+**Response exitoso (200):**
+```json
+{
+  "nombre_completo": "string",
+  "identificacion": "string", 
+  "correo": "string"
+}
+```
+
+**Errores:**
+- **400 Bad Request:**
+```json
+{
+  "error": "Falta parámetro 'id'"
+}
+```
+
+- **404 Not Found:**
+```json
+{
+  "error": "Usuario no encontrado"
+}
+```
+
+- **500 Internal Server Error:**
+```json
+{
+  "error": "Error interno del servidor"
+}
+```

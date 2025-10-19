@@ -332,3 +332,31 @@ func (s *AuthService) RetornarUsuario(ctx context.Context, authHeader string) (s
 
 	return nombre, email, rol, nil
 }
+
+// Agregar este método completo en auth_service.go (reemplazando el incompleto)
+func (s *AuthService) GetUserInfo(ctx context.Context, userID string) (*models.UserInfoResponse, error) {
+	// Conexión directa como en las otras funciones
+	db, err := sql.Open("postgres", "host=localhost port=5432 user=postgres password=123 dbname=blogic_db sslmode=disable")
+	if err != nil {
+		return nil, fmt.Errorf("error conectando a la base de datos: %w", err)
+	}
+	defer db.Close()
+
+	query := `SELECT nombre_completo, identificacion, correo FROM usuarios WHERE id = $1`
+
+	var userInfo models.UserInfoResponse
+	err = db.QueryRowContext(ctx, query, userID).Scan(
+		&userInfo.NombreCompleto,
+		&userInfo.Identificacion,
+		&userInfo.Correo,
+	)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("usuario no encontrado")
+		}
+		return nil, fmt.Errorf("error consultando usuario: %w", err)
+	}
+
+	return &userInfo, nil
+}

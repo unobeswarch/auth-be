@@ -10,3 +10,9 @@ type User struct {
 	AceptaTratamientoDatos bool   `json:"acepta_tratamiento_datos"`
 	ImagenURL              string `json:"imagen_url"`
 }
+
+type UserInfoResponse struct {
+	NombreCompleto string `json:"nombre_completo"`
+	Identificacion string `json:"identificacion"`
+	Correo         string `json:"correo"`
+}
