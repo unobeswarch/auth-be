@@ -295,3 +295,40 @@ func (s *AuthService) RetornarFoto(ctx context.Context, userID string) (string, 
 
 	return imagePath, nil
 }
+
+func (s *AuthService) RetornarUsuario(ctx context.Context, authHeader string) (string, string, string, error) {
+	db, err := sql.Open("postgres", "host=localhost port=5432 user=postgres password=123 dbname=blogic_db sslmode=disable")
+	if err != nil {
+		return "", "", "", err
+	}
+	defer db.Close()
+
+	if authHeader == "" {
+		return "", "", "", errors.New("token de autorización requerido")
+	}
+
+	parts := strings.Split(authHeader, " ")
+	if len(parts) != 2 || parts[0] != "Bearer" {
+		return "", "", "", errors.New("formato de token inválido")
+	}
+
+	token := parts[1]
+
+	userClaims, err := s.ValidateJWT(token)
+
+	id_user := userClaims.UserID
+	var nombre string
+	var email string
+	var rol string
+
+	err = db.QueryRow("SELECT nombre_completo, correo, rol FROM usuarios WHERE id = $1", id_user).Scan(&nombre, &email, &rol)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", "", "", fmt.Errorf("usuario no encontrado")
+		}
+		return "", "", "", fmt.Errorf("error consultando usuario: %v", err)
+	}
+
+	return nombre, email, rol, nil
+}
