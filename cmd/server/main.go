@@ -55,6 +55,7 @@ func main() {
 	http.Handle("/validation", authMiddleware(http.HandlerFunc(handlers.HandlerValidarTokenYRol)))
 	http.Handle("/userExists", authMiddleware(http.HandlerFunc(handlers.HandlerUserExists)))
 	http.Handle("/userImage", authMiddleware(http.HandlerFunc(handlers.HandlerObtenerImagenUsuario)))
+	http.Handle("/userInfo", authMiddleware(http.HandlerFunc(handlers.HandlerObtenerUsuario)))
 
 	log.Printf("business logic service URL: %s", prediagnosticURL)
 	log.Fatal(http.ListenAndServe(":"+port, nil))

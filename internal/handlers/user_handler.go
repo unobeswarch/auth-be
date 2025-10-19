@@ -360,3 +360,36 @@ func HandlerObtenerImagenUsuario(w http.ResponseWriter, r *http.Request) {
 	io.Copy(w, file)
 
 }
+
+func HandlerObtenerUsuario(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Método no permitido"})
+		return
+	}
+
+	authService := services.NewAuthService()
+
+	authHeader := r.Header.Get("Authorization")
+	if authHeader == "" {
+		http.Error(w, "token de autorización requerido", http.StatusUnauthorized)
+		return
+	}
+
+	nombre, email, rol, err := authService.RetornarUsuario(r.Context(), authHeader)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
+	response := map[string]string{
+		"nombre": nombre,
+		"email":  email,
+		"rol":    rol,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
+
+}
