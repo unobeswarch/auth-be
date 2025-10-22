@@ -100,6 +100,7 @@ func IniciarSesion(correo string, contrasena string) (string, int, string, strin
 	db, err := sql.Open("postgres", "host=localhost port=5432 user=postgres password=123 dbname=blogic_db sslmode=disable")
 	// Original:
 	// db, err := sql.Open("postgres", "postgres://postgres:123@localhost:5432/blogic_db?sslmode=disable")
+	// db, err := sql.Open("postgres", "postgres://postgres:BDatosPost0912%2B@localhost:5432/blogic_db?sslmode=disable")
 	if err != nil {
 		return "", 0, "", "", "", err
 	}
@@ -224,7 +225,7 @@ func (s *AuthService) ValidateJWT(token string) (*UserClaims, error) {
 
 func (s *AuthService) GuardarFoto(ctx context.Context, authHeader string, file multipart.File, fileHeader *multipart.FileHeader) (string, error) {
 	db, err := sql.Open("postgres", "postgres://postgres:123@localhost:5432/blogic_db?sslmode=disable")
-
+	// db, err := sql.Open("postgres", "postgres://postgres:BDatosPost0912%2B@localhost:5432/blogic_db?sslmode=disable")
 	if err != nil {
 		return "", err
 	}
@@ -274,11 +275,11 @@ func (s *AuthService) GuardarFoto(ctx context.Context, authHeader string, file m
 	}
 
 	return imagenURL, nil
-
 }
 
 func (s *AuthService) RetornarFoto(ctx context.Context, userID string) (string, error) {
 	db, err := sql.Open("postgres", "host=localhost port=5432 user=postgres password=123 dbname=blogic_db sslmode=disable")
+	// db, err := sql.Open("postgres", "postgres://postgres:BDatosPost0912%2B@localhost:5432/blogic_db?sslmode=disable")
 	if err != nil {
 		return "", err
 	}
@@ -298,6 +299,7 @@ func (s *AuthService) RetornarFoto(ctx context.Context, userID string) (string, 
 
 func (s *AuthService) RetornarUsuario(ctx context.Context, authHeader string) (string, string, string, error) {
 	db, err := sql.Open("postgres", "host=localhost port=5432 user=postgres password=123 dbname=blogic_db sslmode=disable")
+	// db, err := sql.Open("postgres", "postgres://postgres:BDatosPost0912%2B@localhost:5432/blogic_db?sslmode=disable")
 	if err != nil {
 		return "", "", "", err
 	}
@@ -322,7 +324,6 @@ func (s *AuthService) RetornarUsuario(ctx context.Context, authHeader string) (s
 	var rol string
 
 	err = db.QueryRow("SELECT nombre_completo, correo, rol FROM usuarios WHERE id = $1", id_user).Scan(&nombre, &email, &rol)
-
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return "", "", "", fmt.Errorf("usuario no encontrado")
@@ -337,6 +338,7 @@ func (s *AuthService) RetornarUsuario(ctx context.Context, authHeader string) (s
 func (s *AuthService) GetUserInfo(ctx context.Context, userID string) (*models.UserInfoResponse, error) {
 	// Conexión directa como en las otras funciones
 	db, err := sql.Open("postgres", "host=localhost port=5432 user=postgres password=123 dbname=blogic_db sslmode=disable")
+	// db, err := sql.Open("postgres", "postgres://postgres:BDatosPost0912%2B@localhost:5432/blogic_db?sslmode=disable")
 	if err != nil {
 		return nil, fmt.Errorf("error conectando a la base de datos: %w", err)
 	}
@@ -350,7 +352,6 @@ func (s *AuthService) GetUserInfo(ctx context.Context, userID string) (*models.U
 		&userInfo.Identificacion,
 		&userInfo.Correo,
 	)
-
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, fmt.Errorf("usuario no encontrado")
